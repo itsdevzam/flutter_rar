@@ -1,15 +1,15 @@
 Pod::Spec.new do |s|
   s.name             = 'flutter_rar'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'Native UnRAR extraction for Flutter.'
   s.description      = <<-DESC
 Extracts RAR archives on iOS with UnrarKit, the official UnRAR library.
                        DESC
-  s.homepage         = 'https://github.com/booknest/flutter_rar'
+  s.homepage         = 'https://github.com/itsdevzam/flutter_rar'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'BookNest' => 'dev@booknest.app' }
+  s.author           = { 'flutter_rar' => 'itsdevzam@gmail.com' }
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*.{swift,h,m}'
+  s.source_files     = 'flutter_rar/Sources/flutter_rar/**/*.swift'
   s.dependency 'Flutter'
   s.dependency 'UnrarKit', '~> 2.9'
   s.platform = :ios, '13.0'

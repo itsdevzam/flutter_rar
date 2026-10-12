@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_rar/flutter_rar.dart';
 import 'package:flutter_rar/src/rar_paths.dart';
+import 'package:flutter_rar/src/rar_work.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// RAR5 archive with encrypted headers (`rar -hpsecret`), inlined from the
@@ -34,7 +35,10 @@ void main() {
     expect(safeDestinationPath('/tmp/out', '../etc/passwd'), isNull);
     expect(safeDestinationPath('/tmp/out', '/etc/passwd'), isNull);
     expect(safeDestinationPath('/tmp/out', r'C:\Windows\notepad.exe'), isNull);
-    expect(safeDestinationPath('/tmp/out', 'nested/notes.txt'), '/tmp/out/nested/notes.txt');
+    expect(
+      safeDestinationPath('/tmp/out', 'nested/notes.txt'),
+      '/tmp/out/nested/notes.txt',
+    );
   });
 
   test('create never writes a RAR archive', () async {
@@ -46,14 +50,37 @@ void main() {
     expect(result.message, contains('not supported'));
   });
 
+  test('the Dart decoder lists a password-protected RAR5 archive', () async {
+    final listed = await listArchiveBytes(
+      _encryptedHeaders,
+      password: 'secret',
+    );
+    expect(listed.success, isTrue, reason: listed.message);
+    expect(listed.rarVersion, 'RAR5');
+    expect(listed.names, containsAll(_expected.keys));
+
+    final notes = await readArchiveBytes(
+      _encryptedHeaders,
+      entryName: 'nested/notes.txt',
+      password: 'secret',
+    );
+    expect(notes.success, isTrue, reason: notes.message);
+    expect(utf8.decode(notes.bytes), 'deep nested data\n');
+  });
+
   test('listBytes rejects a file that is not a RAR', () async {
-    final result = await FlutterRar.listBytes(bytes: Uint8List.fromList([1, 2, 3, 4]));
+    final result = await FlutterRar.listBytes(
+      bytes: Uint8List.fromList([1, 2, 3, 4]),
+    );
     expect(result.success, isFalse);
     expect(result.message, 'Not a RAR archive');
   });
 
   test('lists and extracts a password-protected RAR5 archive', () async {
-    final listed = await FlutterRar.listBytes(bytes: _encryptedHeaders, password: 'secret');
+    final listed = await FlutterRar.listBytes(
+      bytes: _encryptedHeaders,
+      password: 'secret',
+    );
     expect(listed.success, isTrue, reason: listed.message);
     expect(listed.rarVersion, 'RAR5');
     expect(listed.isEncrypted, isTrue);
@@ -84,7 +111,9 @@ void main() {
       expect(await rarFile.exists(), isTrue);
 
       for (final entry in _expected.entries) {
-        final match = extracted.entries.where((item) => item.name == entry.key).single;
+        final match = extracted.entries
+            .where((item) => item.name == entry.key)
+            .single;
         expect(match.extractedPath, endsWith(entry.key));
         expect(match.isEncrypted, isTrue);
         expect(await File(match.extractedPath).readAsString(), entry.value);
@@ -98,7 +127,10 @@ void main() {
       );
       expect(one.success, isTrue, reason: one.message);
       expect(one.locations, hasLength(1));
-      expect(await File(one.locations.single).readAsString(), _expected['hello.txt']);
+      expect(
+        await File(one.locations.single).readAsString(),
+        _expected['hello.txt'],
+      );
 
       final bytes = await FlutterRar.readEntry(
         rarFilePath: rarFile.path,

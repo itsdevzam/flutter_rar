@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
   s.name             = 'flutter_rar'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'Native UnRAR extraction for Flutter.'
   s.description      = <<-DESC
 Extracts RAR archives with the official UnRAR library.
                        DESC
-  s.homepage         = 'https://github.com/booknest/flutter_rar'
+  s.homepage         = 'https://github.com/itsdevzam/flutter_rar'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'BookNest' => 'dev@booknest.app' }
   s.source           = { :path => '.' }

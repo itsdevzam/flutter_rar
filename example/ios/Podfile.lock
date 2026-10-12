@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_rar (0.2.0):
+  - flutter_rar (0.2.1):
     - Flutter
     - UnrarKit (~> 2.9)
   - integration_test (0.0.1):
@@ -28,7 +28,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_rar: fb4004e53e6e9b8ea7dbf213f3b8875b78397af9
+  flutter_rar: 871b27685249de57f9338444baed53e9226d77e0
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   UnrarKit: 62f535c7a34ec52d2514b9b148f33dcfa9a9dc39
 

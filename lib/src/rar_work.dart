@@ -1,21 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:koni_archive/koni_archive.dart';
+import 'package:koni_archive_core/koni_archive_core.dart';
+import 'package:koni_rar/koni_rar.dart';
 
 import 'rar_models.dart';
 import 'rar_paths.dart';
 import 'rar_version.dart';
 
 /// Reads a RAR archive from memory and lists its entries.
-Future<RarResult> listArchiveBytes(
-  Uint8List bytes, {
-  String? password,
-}) {
-  return _openBytes(
-    bytes,
-    password: password,
-    job: _ArchiveJob.list,
-  );
+Future<RarResult> listArchiveBytes(Uint8List bytes, {String? password}) {
+  return _openBytes(bytes, password: password, job: _ArchiveJob.list);
 }
 
 /// Decodes one entry from an in-memory RAR archive.
@@ -37,18 +31,26 @@ Future<RarFileBytes> readArchiveBytes(
     if (!entry.isFile) {
       return const RarFileBytes(success: false, message: 'Entry is not a file');
     }
-    final data = await archive.readBytes(entry);
-    return RarFileBytes(success: true, message: 'Read ${entry.path}', name: entry.path, bytes: data);
+    final data = await _readAll(archive, entry);
+    return RarFileBytes(
+      success: true,
+      message: 'Read ${entry.path}',
+      name: entry.path,
+      bytes: data,
+    );
   } on ArchiveException catch (error) {
-    return RarFileBytes(success: false, message: describeArchiveError(error, password));
+    return RarFileBytes(
+      success: false,
+      message: describeArchiveError(error, password),
+    );
   } finally {
-    await archive.close();
+    await opened.close();
   }
 }
 
 /// Shared list, test, and extract walk over an already open archive.
 Future<RarResult> collectArchive({
-  required Archive archive,
+  required ArchiveReader archive,
   required String rarVersion,
   required String destinationPath,
   String? onlyEntry,
@@ -116,7 +118,9 @@ Future<RarResult> collectArchive({
     );
   }
 
-  final skipNote = skipped == 0 ? '' : ' Skipped $skipped unsafe or unsupported entries.';
+  final skipNote = skipped == 0
+      ? ''
+      : ' Skipped $skipped unsafe or unsupported entries.';
   final message = test
       ? 'Archive is valid'
       : extracting
@@ -178,7 +182,7 @@ Future<RarResult> _openBytes(
       rarVersion: opened.version,
     );
   } finally {
-    await archive.close();
+    await opened.close();
   }
 }
 
@@ -188,18 +192,26 @@ Future<RarResult> testArchiveBytes(Uint8List bytes, {String? password}) {
 }
 
 class _Opened {
-  _Opened.archive(this.archive, this.version) : result = null;
-  _Opened.failure(this.result) : archive = null, version = '';
+  _Opened.archive(this.archive, this.source, this.version) : result = null;
+  _Opened.failure(this.result) : archive = null, source = null, version = '';
 
-  final Archive? archive;
+  final ArchiveReader? archive;
+  final ByteSource? source;
   final String version;
   final RarResult? result;
+
+  Future<void> close() async {
+    await archive?.close();
+    await source?.close();
+  }
 }
 
 Future<_Opened> _open(Uint8List bytes, String? password) async {
   final version = detectRarVersion(bytes);
   if (version.isEmpty) {
-    return _Opened.failure(const RarResult(success: false, message: 'Not a RAR archive'));
+    return _Opened.failure(
+      const RarResult(success: false, message: 'Not a RAR archive'),
+    );
   }
   if (version == 'RAR15') {
     return _Opened.failure(
@@ -210,19 +222,30 @@ Future<_Opened> _open(Uint8List bytes, String? password) async {
       ),
     );
   }
+  MemoryByteSource? source;
   try {
-    final archive = await Archive.openBytes(
-      bytes,
-      options: ArchiveReadOptions(password: normalizePassword(password)),
-    );
-    if (archive.format.name != 'rar') {
-      await archive.close();
+    source = MemoryByteSource(bytes);
+    final format = const RarFormat();
+    if (!await format.matches(source)) {
+      await source.close();
+      source = null;
       return _Opened.failure(
-        RarResult(success: false, message: 'Not a RAR archive', rarVersion: version),
+        RarResult(
+          success: false,
+          message: 'Not a RAR archive',
+          rarVersion: version,
+        ),
       );
     }
-    return _Opened.archive(archive, version);
+    final archive = await format.createReader(
+      source,
+      ArchiveReadOptions(password: normalizePassword(password)),
+    );
+    final opened = _Opened.archive(archive, source, version);
+    source = null;
+    return opened;
   } on ArchiveException catch (error) {
+    await source?.close();
     return _Opened.failure(
       RarResult(
         success: false,
@@ -233,7 +256,7 @@ Future<_Opened> _open(Uint8List bytes, String? password) async {
   }
 }
 
-ArchiveEntry? _find(Archive archive, String entryName) {
+ArchiveEntry? _find(ArchiveReader archive, String entryName) {
   for (final entry in archive.entries) {
     if (_sameEntry(entry.path, entryName)) return entry;
   }
@@ -242,6 +265,14 @@ ArchiveEntry? _find(Archive archive, String entryName) {
 
 bool _sameEntry(String stored, String requested) {
   return _norm(stored) == _norm(requested);
+}
+
+Future<Uint8List> _readAll(ArchiveReader archive, ArchiveEntry entry) async {
+  final builder = BytesBuilder(copy: false);
+  await for (final chunk in archive.openRead(entry)) {
+    builder.add(chunk);
+  }
+  return builder.takeBytes();
 }
 
 String _norm(String value) {

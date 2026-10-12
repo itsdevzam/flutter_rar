@@ -1,8 +1,11 @@
 import Flutter
+#if canImport(UnrarKit)
 import UnrarKit
+#endif
 
-/// iOS extraction goes through UnrarKit, the same library the previous iOS
-/// RAR plugin used. UnRAR is not thread-safe, so every call stays on one queue.
+/// iOS extraction uses UnrarKit when CocoaPods is linked, and the official
+/// UnRAR sources when Swift Package Manager builds this plugin.
+/// UnRAR is not thread-safe, so every call stays on one queue.
 public class FlutterRarPlugin: NSObject, FlutterPlugin {
   private let queue = DispatchQueue(label: "com.booknest.flutter_rar")
 
@@ -19,6 +22,7 @@ public class FlutterRarPlugin: NSObject, FlutterPlugin {
     let args = call.arguments as? [String: Any] ?? [:]
     queue.async {
       let json: String
+      #if canImport(UnrarKit)
       switch call.method {
       case "list":
         json = self.list(args)
@@ -29,12 +33,16 @@ public class FlutterRarPlugin: NSObject, FlutterPlugin {
       default:
         json = self.fail("Unknown method")
       }
+      #else
+      json = self.nativeRun(call.method, args)
+      #endif
       DispatchQueue.main.async {
         result(json)
       }
     }
   }
 
+#if canImport(UnrarKit)
   private func list(_ args: [String: Any]) -> String {
     let path = args["rarFilePath"] as? String ?? ""
     let password = args["password"] as? String ?? ""
@@ -243,6 +251,41 @@ public class FlutterRarPlugin: NSObject, FlutterPlugin {
     ])
   }
 
+#endif
+
+#if !canImport(UnrarKit)
+  private func nativeRun(_ method: String, _ args: [String: Any]) -> String {
+    let path = args["rarFilePath"] as? String ?? ""
+    let destination = args["destinationPath"] as? String ?? ""
+    let password = args["password"] as? String ?? ""
+    let entryName = args["entryName"] as? String ?? ""
+    let mode: Int32
+    switch method {
+    case "list":
+      mode = 0
+    case "extract":
+      mode = entryName.isEmpty ? 1 : 2
+    case "test":
+      mode = 3
+    default:
+      return fail("Unknown method")
+    }
+    let raw = path.withCString { pathPtr in
+      destination.withCString { destPtr in
+        password.withCString { passwordPtr in
+          entryName.withCString { entryPtr in
+            flutterRarRun(pathPtr, destPtr, passwordPtr, entryPtr, mode)
+          }
+        }
+      }
+    }
+    guard let raw else { return fail("UnRAR failed") }
+    let json = String(cString: raw)
+    flutterRarFree(raw)
+    return json
+  }
+#endif
+
   private func fail(_ message: String, version: String = "") -> String {
     encode([
       "success": false,
@@ -264,3 +307,17 @@ public class FlutterRarPlugin: NSObject, FlutterPlugin {
     return text
   }
 }
+
+#if !canImport(UnrarKit)
+@_silgen_name("flutter_rar_run")
+private func flutterRarRun(
+  _ path: UnsafePointer<CChar>?,
+  _ dest: UnsafePointer<CChar>?,
+  _ password: UnsafePointer<CChar>?,
+  _ entry: UnsafePointer<CChar>?,
+  _ mode: Int32
+) -> UnsafeMutablePointer<CChar>?
+
+@_silgen_name("flutter_rar_free")
+private func flutterRarFree(_ ptr: UnsafeMutablePointer<CChar>?)
+#endif

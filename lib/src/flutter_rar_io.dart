@@ -42,10 +42,7 @@ Future<RarResult> listContents({
 }
 
 /// Lists entries in an in-memory RAR archive.
-Future<RarResult> listBytes({
-  required Uint8List bytes,
-  String? password,
-}) {
+Future<RarResult> listBytes({required Uint8List bytes, String? password}) {
   if (Platform.isIOS) {
     return _withTempArchive(bytes, (path) {
       return _iosResult('list', {
@@ -54,14 +51,16 @@ Future<RarResult> listBytes({
       }, null);
     });
   }
-  return Isolate.run(() => _withTempArchive(bytes, (path) async {
-    return _call(
-      mode: _modeList,
-      rarFilePath: path,
-      destinationPath: '',
-      password: password,
-    );
-  }));
+  return Isolate.run(
+    () => _withTempArchive(bytes, (path) async {
+      return _call(
+        mode: _modeList,
+        rarFilePath: path,
+        destinationPath: '',
+        password: password,
+      );
+    }),
+  );
 }
 
 /// Extracts every file into [destinationPath] and returns each written path.
@@ -83,7 +82,9 @@ Future<RarResult> extract({
   return _run(
     nextVolumePath: nextVolumePath,
     body: () => _call(
-      mode: entryName == null || entryName.isEmpty ? _modeExtract : _modeExtractOne,
+      mode: entryName == null || entryName.isEmpty
+          ? _modeExtract
+          : _modeExtractOne,
       rarFilePath: rarFilePath,
       destinationPath: destinationPath,
       password: password,
@@ -170,7 +171,9 @@ Future<RarFileBytes> _runBytes({
   return Isolate.run(body);
 }
 
-RarResult? _volumeBlock(Future<String?> Function(int volumeNumber)? nextVolumePath) {
+RarResult? _volumeBlock(
+  Future<String?> Function(int volumeNumber)? nextVolumePath,
+) {
   if (nextVolumePath == null) return null;
   return const RarResult(
     success: false,
@@ -188,7 +191,10 @@ Future<RarResult> _iosResult(
   try {
     final text = await _iosChannel.invokeMethod<String>(method, args);
     if (text == null || text.isEmpty) {
-      return const RarResult(success: false, message: 'UnrarKit returned no result.');
+      return const RarResult(
+        success: false,
+        message: 'UnrarKit returned no result.',
+      );
     }
     return _parseResult(text);
   } on PlatformException catch (error) {
@@ -211,7 +217,10 @@ Future<RarFileBytes> _readEntry({
     });
   }
   if (rarFilePath == null) {
-    return const RarFileBytes(success: false, message: 'Provide rarFilePath or bytes');
+    return const RarFileBytes(
+      success: false,
+      message: 'Provide rarFilePath or bytes',
+    );
   }
   return _readExtracted(rarFilePath, entryName, password);
 }
@@ -240,7 +249,9 @@ Future<RarFileBytes> _readExtracted(
     if (!result.success) {
       return RarFileBytes(success: false, message: result.message);
     }
-    final files = result.entries.where((entry) => entry.extractedPath.isNotEmpty && !entry.isDirectory);
+    final files = result.entries.where(
+      (entry) => entry.extractedPath.isNotEmpty && !entry.isDirectory,
+    );
     if (files.isEmpty) {
       return const RarFileBytes(success: false, message: 'Entry is not a file');
     }
@@ -256,8 +267,13 @@ Future<RarFileBytes> _readExtracted(
   }
 }
 
-Future<T> _withTempArchive<T>(Uint8List bytes, Future<T> Function(String path) use) async {
-  final file = File('${Directory.systemTemp.path}/flutter_rar_${DateTime.now().microsecondsSinceEpoch}.rar');
+Future<T> _withTempArchive<T>(
+  Uint8List bytes,
+  Future<T> Function(String path) use,
+) async {
+  final file = File(
+    '${Directory.systemTemp.path}/flutter_rar_${DateTime.now().microsecondsSinceEpoch}.rar',
+  );
   await file.writeAsBytes(bytes, flush: true);
   try {
     return await use(file.path);
@@ -277,12 +293,17 @@ RarResult _call({
     try {
       Directory(destinationPath).createSync(recursive: true);
     } on FileSystemException {
-      return const RarResult(success: false, message: 'Could not create the destination directory');
+      return const RarResult(
+        success: false,
+        message: 'Could not create the destination directory',
+      );
     }
   }
   final library = _library();
   final run = library.lookupFunction<_RunNative, _RunDart>('flutter_rar_run');
-  final free = library.lookupFunction<_FreeNative, _FreeDart>('flutter_rar_free');
+  final free = library.lookupFunction<_FreeNative, _FreeDart>(
+    'flutter_rar_free',
+  );
   final pathPtr = rarFilePath.toNativeUtf8();
   final destPtr = destinationPath.toNativeUtf8();
   final passwordPtr = (password ?? '').toNativeUtf8();
@@ -290,7 +311,10 @@ RarResult _call({
   try {
     final resultPtr = run(pathPtr, destPtr, passwordPtr, entryPtr, mode);
     if (resultPtr == nullptr) {
-      return const RarResult(success: false, message: 'The native library returned no result.');
+      return const RarResult(
+        success: false,
+        message: 'The native library returned no result.',
+      );
     }
     try {
       return _parseResult(resultPtr.toDartString());
@@ -308,7 +332,10 @@ RarResult _call({
 RarResult _parseResult(String jsonText) {
   final decoded = jsonDecode(jsonText);
   if (decoded is! Map<String, dynamic>) {
-    return const RarResult(success: false, message: 'The native library returned invalid JSON.');
+    return const RarResult(
+      success: false,
+      message: 'The native library returned invalid JSON.',
+    );
   }
   final rawEntries = decoded['entries'];
   final entries = <RarEntry>[
@@ -373,19 +400,21 @@ DynamicLibrary _library() {
 
 DynamicLibrary? _opened;
 
-typedef _RunNative = Pointer<Utf8> Function(
-  Pointer<Utf8> path,
-  Pointer<Utf8> dest,
-  Pointer<Utf8> password,
-  Pointer<Utf8> entry,
-  Int32 mode,
-);
-typedef _RunDart = Pointer<Utf8> Function(
-  Pointer<Utf8> path,
-  Pointer<Utf8> dest,
-  Pointer<Utf8> password,
-  Pointer<Utf8> entry,
-  int mode,
-);
+typedef _RunNative =
+    Pointer<Utf8> Function(
+      Pointer<Utf8> path,
+      Pointer<Utf8> dest,
+      Pointer<Utf8> password,
+      Pointer<Utf8> entry,
+      Int32 mode,
+    );
+typedef _RunDart =
+    Pointer<Utf8> Function(
+      Pointer<Utf8> path,
+      Pointer<Utf8> dest,
+      Pointer<Utf8> password,
+      Pointer<Utf8> entry,
+      int mode,
+    );
 typedef _FreeNative = Void Function(Pointer<Utf8> ptr);
 typedef _FreeDart = void Function(Pointer<Utf8> ptr);

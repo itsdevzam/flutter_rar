@@ -9,7 +9,7 @@ Password-protected RAR4 and RAR5 are supported, including encrypted headers (`ra
 | Platform | Decoder | Extract into a folder |
 | --- | --- | --- |
 | Android | Official UnRAR, compiled into the app | Yes |
-| iOS | [UnrarKit](https://github.com/abbeycode/UnrarKit), the same official UnRAR library | Yes |
+| iOS | Official UnRAR. CocoaPods uses [UnrarKit](https://github.com/abbeycode/UnrarKit). Swift Package Manager compiles the same UnRAR sources into the app | Yes |
 | macOS, Linux, Windows | Official UnRAR, compiled into the app | Yes |
 | Web | [`koni_rar`](https://pub.dev/packages/koni_rar) (pure Dart) | No. Use `listBytes` and `readEntry` |
 
@@ -21,7 +21,7 @@ Creating a `.rar` file is not supported. The RAR compression algorithm is propri
 
 ```yaml
 dependencies:
-  flutter_rar: ^0.2.0
+  flutter_rar: ^0.2.1
 ```
 
 ## Functions
@@ -149,3 +149,5 @@ Each `RarEntry` has:
 - On web, the archive bytes. Browsers do not give this package a folder to extract into.
 
 The `example/` app runs these calls against a small password-protected RAR5 archive and shows what passed on the current platform.
+
+This package is MIT. Decompression uses the official UnRAR sources, which allow unpacking and do not allow building a RAR compressor. That notice is in `src/UNRAR_LICENSE.txt`.

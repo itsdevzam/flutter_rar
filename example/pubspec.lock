@@ -97,7 +97,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.2.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -113,27 +113,11 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  glob:
-    dependency: transitive
-    description:
-      name: glob
-      sha256: "218aeb56050c714f62a3182775320dfa04602b55074873e24e31bbd39bda96fb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   integration_test:
     dependency: "direct dev"
     description: flutter
     source: sdk
     version: "0.0.0"
-  koni_archive:
-    dependency: transitive
-    description:
-      name: koni_archive
-      sha256: fc63ef9271f6d5ab5f6e866b8fb41e63ffa35786f0c9cf201537f04cb8091335
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.9.0"
   koni_archive_core:
     dependency: transitive
     description:
@@ -150,43 +134,11 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.0"
-  koni_gzip:
-    dependency: transitive
-    description:
-      name: koni_gzip
-      sha256: d54df658949a1209891c1c8d6716edc2e7650c40ad419d39a793e8b91b3f7f91
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.9.0"
   koni_rar:
     dependency: transitive
     description:
       name: koni_rar
       sha256: c8f1a5b2f1b9d8f6cfd981c67e8c34298f722806f7288f06faabb40004362f56
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.9.0"
-  koni_sevenz:
-    dependency: transitive
-    description:
-      name: koni_sevenz
-      sha256: "058428e9328361849aea9f4b1f75803473248b33dbdc434ffbcc205c83c82d4b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.9.0"
-  koni_tar:
-    dependency: transitive
-    description:
-      name: koni_tar
-      sha256: "79120cb336e21a8f8ba5348a07811c37a38881b9d2be5c9e56d190057c6873e9"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.9.0"
-  koni_zip:
-    dependency: transitive
-    description:
-      name: koni_zip
-      sha256: a0b234fd56678a2a277e0fc52987396a1ded52a04224de49bf5257ffca29700f
       url: "https://pub.dev"
     source: hosted
     version: "0.9.0"

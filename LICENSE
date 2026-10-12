@@ -19,13 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-RAR decoding on Android, iOS, macOS, Linux, and Windows uses the official UnRAR
-sources. Those sources may be used to handle RAR archives without limitations
-free of charge, but cannot be used to develop a RAR-compatible archiver or to
-re-create the RAR compression algorithm, which is proprietary. Copyright
-remains with Alexander Roshal. See src/UNRAR_LICENSE.txt.
-
-Web listing uses the koni_archive packages, which keep their own license.
-This package does not include the proprietary RAR compression algorithm and
-cannot create RAR archives.

@@ -1,6 +1,6 @@
 name: flutter_rar
 description: Native UnRAR for Flutter. List and extract password-protected RAR4 and RAR5, and return the path of every extracted file.
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/itsdevzam/flutter_rar
 topics:
   - rar
@@ -17,7 +17,8 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  koni_archive: ^0.9.0
+  koni_archive_core: ^0.9.0
+  koni_rar: ^0.9.0
   path: ^1.9.1
 
 dev_dependencies:

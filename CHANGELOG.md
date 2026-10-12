@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Ship a plain MIT license, Swift Package Manager support for the iOS plugin, and a web decoder import path that stays compatible with WebAssembly.
+
 ## 0.2.0
 
 * Extract and list RAR archives with native UnRAR on Android, iOS, macOS, Linux, and Windows, including password-protected RAR4 and RAR5.

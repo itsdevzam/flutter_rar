@@ -20,10 +20,7 @@ Future<RarResult> listContents({
 }
 
 /// Lists entries in an in-memory RAR archive.
-Future<RarResult> listBytes({
-  required Uint8List bytes,
-  String? password,
-}) {
+Future<RarResult> listBytes({required Uint8List bytes, String? password}) {
   return listArchiveBytes(bytes, password: password);
 }
 

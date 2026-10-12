@@ -7,6 +7,7 @@
 .atom/
 .build/
 .buildlog/
+ios/FlutterFramework/
 .history
 .svn/
 .swiftpm/
