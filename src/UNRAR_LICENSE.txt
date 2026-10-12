@@ -1,0 +1,7 @@
+The UnRAR sources in src/unrar may be used to handle RAR archives without
+limitations free of charge, but cannot be used to develop a RAR (WinRAR)
+compatible archiver or to re-create the RAR compression algorithm, which is
+proprietary. Copyright remains with Alexander Roshal. The library is
+distributed "as is", without warranty.
+
+This package links those sources only for decompression.
